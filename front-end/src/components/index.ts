@@ -1,0 +1,10 @@
+export { default as Navbar } from "./Navbar";
+export { default as Hero } from "./Hero";
+export { default as Footer } from "./Footer";
+export { default as TeamSection } from "./TeamSection";
+export { default as TeamCard } from "./TeamCard";
+export { default as Testimonials } from "./Testimonials";
+export { default as Arrow } from "./Arrow";
+export { default as LegalServiceCard } from "./LegalServiceCard";
+export { default as ServiceCard } from "./ServiceCard";
+export { default as Pagination } from "./Pagination";

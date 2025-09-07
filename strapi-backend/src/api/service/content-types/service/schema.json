@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "services",
+  "info": {
+    "singularName": "service",
+    "pluralName": "services",
+    "displayName": "Service",
+    "description": "Legal services offered by the firm"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true,
+      "maxLength": 255
+    },
+    "description": {
+      "type": "text",
+      "required": true
+    },
+    "icon": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "features": {
+      "type": "json"
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title"
+    },
+    "order": {
+      "type": "integer",
+      "default": 0
+    }
+  }
+}
