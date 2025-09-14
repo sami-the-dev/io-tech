@@ -3,28 +3,20 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { FiSearch, FiMenu, FiX } from "react-icons/fi";
-import { useNavigationLinks } from "@/hooks/useStrapiData";
 import { scrollToElement } from "@/lib/helper";
+
+const navLinks = [
+  { id: "home", href: "/", label: "Home" },
+  { id: "services", href: "/services", label: "Services" },
+  { id: "about", href: "/about", label: "About Us" },
+  { id: "blog", href: "#", label: "Blog" },
+  { id: "contact", href: "#", label: "Contact" },
+];
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-
-  // Fetch navigation links from Strapi
-  const { navigationLinks, loading, error } = useNavigationLinks();
-
-  // Debug log for development
-  useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.log("Navigation Debug:", {
-        navigationLinks,
-        loading,
-        error,
-        length: navigationLinks.length,
-      });
-    }
-  }, [navigationLinks, loading, error]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -56,83 +48,6 @@ const Navbar = () => {
     };
   }, []);
 
-  // Default fallback navigation links if Strapi fails
-  const defaultNavLinks = [
-    {
-      id: 1,
-      href: "/",
-      label: "Home",
-      isScroll: false,
-      scrollTarget: "",
-      order: 1,
-      createdAt: "",
-      updatedAt: "",
-    },
-    {
-      id: 2,
-      href: "/about",
-      label: "About",
-      isScroll: false,
-      scrollTarget: "",
-      order: 2,
-      createdAt: "",
-      updatedAt: "",
-    },
-    {
-      id: 3,
-      href: "/services",
-      label: "Services",
-      isScroll: false,
-      scrollTarget: "",
-      order: 3,
-      createdAt: "",
-      updatedAt: "",
-    },
-    {
-      id: 4,
-      href: "#",
-      label: "Blog",
-      isScroll: false,
-      scrollTarget: "",
-      order: 4,
-      createdAt: "",
-      updatedAt: "",
-    },
-    {
-      id: 5,
-      href: "#",
-      label: "Contact Us",
-      isScroll: false,
-      scrollTarget: "",
-      order: 5,
-      createdAt: "",
-      updatedAt: "",
-    },
-  ];
-
-  const defaultScrollLinks = [
-    {
-      id: 6,
-      href: "#",
-      label: "Our Team",
-      isScroll: true,
-      scrollTarget: "team-section",
-      order: 6,
-      createdAt: "",
-      updatedAt: "",
-    },
-  ];
-
-  // Use Strapi data if available, otherwise use defaults
-  const navLinks =
-    loading || error || navigationLinks.length === 0
-      ? defaultNavLinks
-      : navigationLinks.filter((link) => !link.isScroll);
-  const scrollLinks =
-    loading || error || navigationLinks.length === 0
-      ? defaultScrollLinks
-      : navigationLinks.filter((link) => link.isScroll);
-
   return (
     <nav className="relative z-50 bg-transparent">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -148,19 +63,6 @@ const Navbar = () => {
                 >
                   {link.label}
                 </Link>
-              ))}
-              {scrollLinks.map((link) => (
-                <button
-                  key={link.id}
-                  onClick={() =>
-                    scrollToSection(
-                      link.scrollTarget || link.href.replace("#", "")
-                    )
-                  }
-                  className="rounded-md px-3 py-2 text-sm font-medium text-white transition-colors duration-200 hover:text-gray-300"
-                >
-                  {link.label}
-                </button>
               ))}
             </div>
           </div>
@@ -234,19 +136,6 @@ const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
-              {scrollLinks.map((link) => (
-                <button
-                  key={link.id}
-                  onClick={() =>
-                    scrollToSection(
-                      link.scrollTarget || link.href.replace("#", "")
-                    )
-                  }
-                  className="block w-full rounded-md px-3 py-2 text-left text-base font-medium text-white transition-colors duration-200 hover:text-gray-300"
-                >
-                  {link.label}
-                </button>
-              ))}
 
               {/* Mobile Search */}
               <div className="mt-4 px-3">
@@ -269,14 +158,6 @@ const Navbar = () => {
           </div>
         )}
       </div>
-
-      {/* Loading/Error indicator for development */}
-      {(loading || error) && process.env.NODE_ENV === "development" && (
-        <div className="absolute top-full left-0 w-full bg-yellow-100 px-4 py-1 text-xs text-yellow-800">
-          {loading ? "Loading navigation..." : `Navigation error: ${error}`} -
-          Using fallback navigation
-        </div>
-      )}
     </nav>
   );
 };

@@ -1,44 +1,37 @@
-/**
- * Strapi API Configuration and Utilities
- *
- * This file contains all the necessary functions to interact with the Strapi CMS.
- * Make sure to set your NEXT_PUBLIC_STRAPI_URL environment variable.
- */
-
-const STRAPI_URL =
-  process.env.NEXT_PUBLIC_STRAPI_URL || "http://localhost:1337";
-const API_TOKEN = process.env.NEXT_PUBLIC_STRAPI_API_TOKEN;
+import axios, { AxiosRequestConfig } from "axios";
+import { API_CONFIG, API_ROUTES, buildApiUrl } from "./apiRoutes";
+import type { FetchApi } from "@/types/interfaces";
 
 /**
- * Generic function to fetch data from Strapi API
+ * Generic function to fetch data from Strapi API using axios
  */
-async function fetchAPI(endpoint: string, options: RequestInit = {}) {
-  const url = `${STRAPI_URL}/api${endpoint}`;
 
-  const defaultOptions: RequestInit = {
+async function fetchAPI({ endpoint, options, query, token }: FetchApi) {
+  const url = buildApiUrl(endpoint, query);
+
+  const defaultOptions: AxiosRequestConfig = {
     method: "GET",
-    mode: "cors",
-    credentials: "omit",
+    url,
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
-      ...(API_TOKEN && { Authorization: `Bearer ${API_TOKEN}` }),
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
+    withCredentials: false,
   };
 
   try {
-    const response = await fetch(url, { ...defaultOptions, ...options });
-
-    if (!response.ok) {
-      console.error(
-        `Strapi API Error: ${response.status} ${response.statusText}`
-      );
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
+    const response = await axios({ ...defaultOptions, ...options });
+    return response.data;
   } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        `Strapi API Error: ${error.response?.status} ${error.response?.statusText}`
+      );
+      throw new Error(
+        `HTTP error! status: ${error.response?.status || "Network Error"}`
+      );
+    }
     console.error(`Error fetching from Strapi API (${endpoint}):`, error);
     throw error;
   }
@@ -52,11 +45,11 @@ export function getStrapiMediaUrl(media: any): string {
 
   if (media.data?.attributes?.url) {
     const url = media.data.attributes.url;
-    return url.startsWith("http") ? url : `${STRAPI_URL}${url}`;
+    return url.startsWith("http") ? url : `${API_CONFIG.BASE_URL}${url}`;
   }
 
   if (typeof media === "string") {
-    return media.startsWith("http") ? media : `${STRAPI_URL}${media}`;
+    return media.startsWith("http") ? media : `${API_CONFIG.BASE_URL}${media}`;
   }
 
   return "";
@@ -67,7 +60,11 @@ export function getStrapiMediaUrl(media: any): string {
  */
 export async function fetchServices() {
   try {
-    const data = await fetchAPI("/services?populate=*");
+    const data = await fetchAPI({
+      endpoint: API_ROUTES.SERVICES,
+      query: "populate=*",
+    });
+
     return data.data || [];
   } catch (error) {
     console.error("Error fetching services:", error);
@@ -80,7 +77,10 @@ export async function fetchServices() {
  */
 export async function fetchTeamMembers() {
   try {
-    const data = await fetchAPI("/team-members?populate=*");
+    const data = await fetchAPI({
+      endpoint: API_ROUTES.TEAM_MEMBERS,
+      query: "populate=*",
+    });
     return data.data || [];
   } catch (error) {
     console.error("Error fetching team members:", error);
@@ -93,7 +93,10 @@ export async function fetchTeamMembers() {
  */
 export async function fetchTestimonials() {
   try {
-    const data = await fetchAPI("/testimonials?populate=*");
+    const data = await fetchAPI({
+      endpoint: API_ROUTES.TESTIMONIALS,
+      query: "populate=*",
+    });
     return data.data || [];
   } catch (error) {
     console.error("Error fetching testimonials:", error);
@@ -106,7 +109,10 @@ export async function fetchTestimonials() {
  */
 export async function fetchLegalServices() {
   try {
-    const data = await fetchAPI("/legal-services?populate=deep");
+    const data = await fetchAPI({
+      endpoint: API_ROUTES.LEGAL_SERVICES,
+      query: "populate=*",
+    });
     return data.data || [];
   } catch (error) {
     console.error("Error fetching legal services:", error);
@@ -119,7 +125,10 @@ export async function fetchLegalServices() {
  */
 export async function fetchNavigationLinks() {
   try {
-    const data = await fetchAPI("/navigation-links?populate=*");
+    const data = await fetchAPI({
+      endpoint: API_ROUTES.NAVIGATION_LINKS,
+      query: "populate=*",
+    });
     return data.data || [];
   } catch (error) {
     console.error("Error fetching navigation links:", error);
@@ -132,105 +141,15 @@ export async function fetchNavigationLinks() {
  */
 export async function fetchSiteSettings() {
   try {
-    const data = await fetchAPI("/site-setting?populate=deep");
+    const data = await fetchAPI({
+      endpoint: API_ROUTES.SITE_SETTINGS,
+      query: "populate=deep",
+    });
     return data.data || null;
   } catch (error) {
     console.error("Error fetching site settings:", error);
     return null;
   }
-}
-
-/**
- * Transform Strapi service data to component format
- */
-export function transformStrapiService(strapiService: any) {
-  const attributes = strapiService.attributes;
-  return {
-    id: strapiService.id,
-    title: attributes.title,
-    description: attributes.description || "",
-    slug: attributes.slug || "",
-    createdAt: attributes.createdAt,
-    updatedAt: attributes.updatedAt,
-  };
-}
-
-/**
- * Transform Strapi team member data to component format
- */
-export function transformStrapiTeamMember(strapiMember: any) {
-  const attributes = strapiMember.attributes;
-  return {
-    id: strapiMember.id,
-    name: attributes.name,
-    position: attributes.position,
-    description: attributes.description,
-    image: getStrapiMediaUrl(attributes.image),
-    phone: attributes.phone || "",
-    whatsapp: attributes.whatsapp || "",
-    email: attributes.email || "",
-    experience: attributes.experience || "",
-    createdAt: attributes.createdAt,
-    updatedAt: attributes.updatedAt,
-  };
-}
-
-/**
- * Transform Strapi testimonial data to component format
- */
-export function transformStrapiTestimonial(strapiTestimonial: any) {
-  const attributes = strapiTestimonial.attributes;
-  return {
-    id: strapiTestimonial.id,
-    name: attributes.name,
-    company: attributes.company,
-    position: attributes.position || "",
-    image: getStrapiMediaUrl(attributes.image),
-    testimonial: attributes.testimonial,
-    rating: attributes.rating || 5,
-    createdAt: attributes.createdAt,
-    updatedAt: attributes.updatedAt,
-  };
-}
-
-/**
- * Transform Strapi legal service data to component format
- */
-export function transformStrapiLegalService(strapiLegalService: any) {
-  const attributes = strapiLegalService.attributes;
-
-  // Transform subtitles if they exist
-  const subtitles =
-    attributes.subtitles?.map((subtitle: any) => ({
-      title: subtitle.title,
-      points: subtitle.points || [],
-    })) || [];
-
-  return {
-    id: strapiLegalService.id,
-    title: attributes.title,
-    description: attributes.description,
-    subtitles: subtitles.length > 0 ? subtitles : undefined,
-    createdAt: attributes.createdAt,
-    updatedAt: attributes.updatedAt,
-  };
-}
-
-/**
- * Transform Strapi navigation link data to component format
- */
-export function transformStrapiNavigationLink(strapiLink: any) {
-  const attributes = strapiLink.attributes;
-  return {
-    id: strapiLink.id,
-    label: attributes.label,
-    href: attributes.href,
-    isScroll: attributes.isScroll || false,
-    scrollTarget: attributes.scrollTarget || "",
-    order: attributes.order || 0,
-    createdAt: attributes.createdAt,
-    updatedAt: attributes.updatedAt,
-  };
 }
 
 export default {
@@ -241,9 +160,4 @@ export default {
   fetchNavigationLinks,
   fetchSiteSettings,
   getStrapiMediaUrl,
-  transformStrapiService,
-  transformStrapiTeamMember,
-  transformStrapiTestimonial,
-  transformStrapiLegalService,
-  transformStrapiNavigationLink,
 };

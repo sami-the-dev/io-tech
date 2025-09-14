@@ -6,65 +6,36 @@ import { useState } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import Image from "next/image";
 import { LawyerProfile } from "@/types/interfaces";
+import { useTeamMembers } from "@/hooks/useStrapiQuery";
 
 interface HeroProps {
-  lawyers?: LawyerProfile[];
   backgroundImage?: string;
 }
 
-const Hero = ({
-  lawyers = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      title: "Corporate Law Specialist",
-      description:
-        "With over 15 years of experience in corporate law, Sarah has successfully handled complex mergers, acquisitions, and corporate restructuring cases. Her expertise helps businesses navigate legal challenges with confidence.",
-      avatar: avatar,
-      experience: "15+ Years",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 2,
-      name: "Michael Chen",
-      title: "Criminal Defense Attorney",
-      description:
-        "Michael is a seasoned criminal defense attorney with a proven track record of protecting clients' rights. His strategic approach and courtroom expertise have resulted in numerous successful case outcomes.",
-      avatar: avatar,
-      experience: "12+ Years",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 3,
-      name: "Emily Rodriguez",
-      title: "Family Law Expert",
-      description:
-        "Emily specializes in family law matters including divorce, child custody, and adoption cases. She provides compassionate legal guidance during life's most challenging transitions.",
-      avatar: avatar,
-      experience: "10+ Years",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-  ],
-  backgroundImage = "/hero.png",
-}: HeroProps) => {
+const Hero = ({ backgroundImage = "/hero.png" }: HeroProps) => {
+  // Fetch team members from Strapi
+  const { data: teamMembers = [], isLoading } = useTeamMembers();
+
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const nextSlide = () => {
-    setCurrentSlide(prev => (prev + 1) % lawyers.length);
+    setCurrentSlide((prev) => (prev + 1) % teamMembers.length);
   };
 
   const prevSlide = () => {
-    setCurrentSlide(prev => (prev - 1 + lawyers.length) % lawyers.length);
+    setCurrentSlide(
+      (prev) => (prev - 1 + teamMembers.length) % teamMembers.length
+    );
   };
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
   };
 
-  const currentLawyer = lawyers[currentSlide];
+  const currentLawyer = teamMembers && teamMembers[currentSlide];
+
+  console.log("currentLawyer", teamMembers);
+
   return (
     <section
       className="relative flex h-screen flex-col bg-cover bg-center bg-no-repeat"
@@ -88,7 +59,7 @@ const Hero = ({
                 <div className="flex flex-row justify-center space-x-8">
                   {/* Slider Dots */}
                   <div className="flex flex-col gap-3 self-end">
-                    {lawyers.map((_, index) => (
+                    {teamMembers?.map((_, index) => (
                       <button
                         key={index}
                         onClick={() => goToSlide(index)}
@@ -106,11 +77,11 @@ const Hero = ({
               {/* Lawyer Info */}
               <div className="space-y-10">
                 <h2 className="text-2xl font-semibold text-white md:text-3xl">
-                  {currentLawyer.name}
+                  {currentLawyer?.name}
                 </h2>
 
                 <p className="leading-relaxed text-gray-300">
-                  {currentLawyer.description}
+                  {currentLawyer?.description}
                 </p>
 
                 {/* Read More Button with Arrow */}
@@ -129,9 +100,10 @@ const Hero = ({
               <div className="relative">
                 <div className="relative h-80 w-80 overflow-hidden rounded-md bg-white/10 backdrop-blur-sm">
                   <Image
-                    src={currentLawyer.avatar}
-                    alt={currentLawyer.name}
-                    placeholder="blur"
+                    width={300}
+                    height={300}
+                    src={currentLawyer?.image}
+                    alt={currentLawyer?.name}
                     className="h-full w-full object-cover"
                   />
                 </div>

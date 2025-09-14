@@ -1,3 +1,4 @@
+import { AxiosRequestConfig } from "axios";
 import { StaticImageData } from "next/image";
 
 // Base Strapi interface
@@ -101,4 +102,11 @@ export interface PaginationProps {
   onPageChange: (page: number) => void;
   onPrevious: () => void;
   onNext: () => void;
+}
+
+export interface FetchApi {
+  endpoint: string;
+  options?: AxiosRequestConfig;
+  token?: string;
+  query: string;
 }

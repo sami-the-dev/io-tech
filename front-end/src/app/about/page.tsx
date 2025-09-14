@@ -4,16 +4,20 @@ import React from "react";
 import { FiArrowLeft } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { LegalServiceCard } from "@/components";
-import { useLegalServices } from "@/hooks/useStrapiData";
 import Image from "next/image";
 import aboutBg from "../../../public/about-bg.png";
 import { useScrollToHeader } from "@/hooks/useScrollToHeader";
+import { useLegalServices } from "@/hooks/useStrapiQuery";
 
 const AboutUs = () => {
   const router = useRouter();
 
   // Fetch legal services from Strapi
-  const { legalServices, loading, error } = useLegalServices();
+  const {
+    data: legalServices = [],
+    isLoading: loading,
+    error,
+  } = useLegalServices();
 
   const handleBackClick = () => {
     router.back();
@@ -96,7 +100,8 @@ const AboutUs = () => {
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
             <div className="text-center">
               <p className="mb-4 text-red-600">
-                Error loading legal services: {error}
+                Error loading legal services:{" "}
+                {error?.message || "Unknown error"}
               </p>
               <button
                 onClick={() => window.location.reload()}
@@ -159,7 +164,7 @@ const AboutUs = () => {
           {/* Legal Services Sections */}
           <div className="space-y-16">
             {legalServices.length > 0 ? (
-              legalServices.map(service => (
+              legalServices.map((service) => (
                 <LegalServiceCard
                   key={service.id}
                   title={service.title}

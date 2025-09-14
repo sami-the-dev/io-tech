@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_blocks_subtitles",
+  "info": {
+    "displayName": "subtitles"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "points": {
+      "type": "text"
+    }
+  },
+  "config": {}
+}

@@ -2,10 +2,9 @@
 
 import React, { useState } from "react";
 import { TeamSectionProps } from "@/types/interfaces";
-import { useTeamMembers } from "@/hooks/useStrapiData";
 import TeamCard from "./TeamCard";
 import Arrow from "./Arrow";
-import { formatExperience } from "@/lib/helper";
+import { useTeamMembers } from "@/hooks/useStrapiQuery";
 
 const TeamSection = ({
   title = "Our Team",
@@ -15,16 +14,21 @@ const TeamSection = ({
   const [itemsPerPage] = useState(3);
 
   // Fetch team members from Strapi
-  const { teamMembers, loading, error } = useTeamMembers();
+  const {
+    data: teamMembers = [],
+    isLoading: loading,
+    error,
+  } = useTeamMembers();
 
-  const totalSlides = Math.ceil(teamMembers.length / itemsPerPage);
+  const totalSlides =
+    teamMembers.length > 0 ? Math.ceil(teamMembers.length / itemsPerPage) : 1;
 
   const nextSlide = () => {
-    setCurrentSlide(prev => (prev + 1) % totalSlides);
+    setCurrentSlide((prev) => (prev + 1) % totalSlides);
   };
 
   const prevSlide = () => {
-    setCurrentSlide(prev => (prev - 1 + totalSlides) % totalSlides);
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
   };
 
   const goToSlide = (index: number) => {
@@ -36,19 +40,8 @@ const TeamSection = ({
     return teamMembers.slice(startIndex, startIndex + itemsPerPage);
   };
 
-  // Loading state
-  if (loading) {
-    return (
-      <section id="team-section" className="relative bg-gray-50 py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-[var(--color-primary)]"></div>
-            <p className="mt-4 text-gray-600">Loading team members...</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
+  // Show loading state only after hydration to prevent mismatch
+  const showLoadingState = loading && teamMembers.length === 0;
 
   // Error state
   if (error) {
@@ -57,7 +50,7 @@ const TeamSection = ({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <p className="mb-4 text-red-600">
-              Error loading team members: {error}
+              Error loading team members: {error?.message || "Unknown error"}
             </p>
             <button
               onClick={() => window.location.reload()}
@@ -72,6 +65,78 @@ const TeamSection = ({
   }
 
   // No team members
+  if (teamMembers.length === 0) {
+    return (
+      <section id="team-section" className="relative bg-gray-50 py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-16 text-center">
+            <h2 className="mb-6 text-4xl font-bold text-gray-900 md:text-5xl">
+              {title}
+            </h2>
+            <p className="mx-auto max-w-3xl text-lg leading-relaxed text-gray-600">
+              {description}
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-gray-600">
+              No team members available at the moment.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Handle different states without causing hydration mismatch
+  if (showLoadingState) {
+    return (
+      <section id="team-section" className="relative bg-gray-50 py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-16 text-center">
+            <h2 className="mb-6 text-4xl font-bold text-gray-900 md:text-5xl">
+              {title}
+            </h2>
+            <p className="mx-auto max-w-3xl text-lg leading-relaxed text-gray-600">
+              {description}
+            </p>
+          </div>
+          <div className="text-center">
+            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-[var(--color-primary)]"></div>
+            <p className="mt-4 text-gray-600">Loading team members...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section id="team-section" className="relative bg-gray-50 py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-16 text-center">
+            <h2 className="mb-6 text-4xl font-bold text-gray-900 md:text-5xl">
+              {title}
+            </h2>
+            <p className="mx-auto max-w-3xl text-lg leading-relaxed text-gray-600">
+              {description}
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="mb-4 text-red-600">
+              Error loading team members: {String(error) || "Unknown error"}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-white hover:bg-[var(--color-primary-dark)]"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   if (teamMembers.length === 0) {
     return (
       <section id="team-section" className="relative bg-gray-50 py-16">
@@ -138,7 +203,7 @@ const TeamSection = ({
         <div className="relative">
           {/* Team Cards Grid */}
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {getCurrentTeamMembers().map(member => (
+            {getCurrentTeamMembers().map((member) => (
               <TeamCard key={member.id} member={member} />
             ))}
           </div>

@@ -37,14 +37,12 @@ const LegalServiceCard: React.FC<LegalServiceCardProps> = ({
                   {subtitle.title}
                 </h3>
                 <ul className="space-y-2">
-                  {subtitle.points.map((point, pointIndex) => (
-                    <li key={pointIndex} className="flex items-start gap-2">
-                      <MdRectangle className="mt-1 h-1.5 w-1.5 flex-shrink-0 text-[var(--color-primary)]" />
-                      <span className="text-xs leading-relaxed text-gray-600">
-                        {point}
-                      </span>
-                    </li>
-                  ))}
+                  <li className="flex items-start gap-2">
+                    <MdRectangle className="mt-1 h-1.5 w-1.5 flex-shrink-0 text-[var(--color-primary)]" />
+                    <span className="text-xs leading-relaxed text-gray-600">
+                      {subtitle.points}
+                    </span>
+                  </li>
                 </ul>
               </div>
             ))}

@@ -21,13 +21,17 @@ const nextConfig = {
   },
   // Configure image domains for Strapi uploads
   images: {
-    domains: ["localhost"],
+    domains: ["localhost", "images.unsplash.com"],
     remotePatterns: [
       {
         protocol: "http",
         hostname: "localhost",
         port: "1337",
         pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
       },
     ],
   },

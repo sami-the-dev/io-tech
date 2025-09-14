@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import avatar from "../../public/avatar.png";
 import Image from "next/image";
 import { TestimonialsProps } from "@/types/interfaces";
-import { useTestimonials } from "@/hooks/useStrapiData";
 import Arrow from "./Arrow";
+import { useTestimonials } from "@/hooks/useStrapiQuery";
 
 const Testimonials = ({
   title = "What Our Clients Are Saying",
@@ -15,13 +15,20 @@ const Testimonials = ({
   const [isAnimating, setIsAnimating] = useState(false);
 
   // Fetch testimonials from Strapi
-  const { testimonials, loading, error } = useTestimonials();
+  const {
+    data: testimonials = [],
+    isLoading: loading,
+    error,
+  } = useTestimonials();
+
+  // Show loading state only after hydration to prevent mismatch
+  const showLoadingState = loading && testimonials.length === 0;
 
   const nextSlide = () => {
     if (!isAnimating && testimonials.length > 0) {
       setIsAnimating(true);
       setTimeout(() => {
-        setCurrentSlide(prev => (prev + 1) % testimonials.length);
+        setCurrentSlide((prev) => (prev + 1) % testimonials.length);
         setIsAnimating(false);
       }, 150);
     }
@@ -32,7 +39,7 @@ const Testimonials = ({
       setIsAnimating(true);
       setTimeout(() => {
         setCurrentSlide(
-          prev => (prev - 1 + testimonials.length) % testimonials.length
+          (prev) => (prev - 1 + testimonials.length) % testimonials.length
         );
         setIsAnimating(false);
       }, 150);
@@ -43,11 +50,17 @@ const Testimonials = ({
     setCurrentSlide(index);
   };
 
-  // Loading state
-  if (loading) {
+  // Handle different states without causing hydration mismatch
+  if (showLoadingState) {
     return (
       <section className="bg-primary-dark py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-6 text-left">
+            <h2 className="text-4xl font-bold text-white md:text-5xl">
+              {title}
+            </h2>
+            <p className="mt-4 text-xl text-gray-300">{description}</p>
+          </div>
           <div className="text-center">
             <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-white"></div>
             <p className="mt-4 text-white">Loading testimonials...</p>
@@ -57,14 +70,19 @@ const Testimonials = ({
     );
   }
 
-  // Error state
   if (error) {
     return (
       <section className="bg-primary-dark py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-6 text-left">
+            <h2 className="text-4xl font-bold text-white md:text-5xl">
+              {title}
+            </h2>
+            <p className="mt-4 text-xl text-gray-300">{description}</p>
+          </div>
           <div className="text-center">
             <p className="mb-4 text-red-400">
-              Error loading testimonials: {error}
+              Error loading testimonials: {String(error) || "Unknown error"}
             </p>
             <button
               onClick={() => window.location.reload()}
@@ -78,7 +96,7 @@ const Testimonials = ({
     );
   }
 
-  // No testimonials
+  // No testimonials - show section with message
   if (testimonials.length === 0) {
     return (
       <>

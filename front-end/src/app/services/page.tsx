@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import { FiArrowLeft } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { useScrollToHeader } from "@/hooks/useScrollToHeader";
-import { useServices } from "@/hooks/useStrapiData";
 import { ServiceCard, Pagination } from "@/components";
+import { useServices } from "@/hooks/useStrapiQuery";
 
 const Services = () => {
   const router = useRouter();
@@ -13,7 +13,9 @@ const Services = () => {
   const servicesPerPage = 6;
 
   // Fetch services from Strapi
-  const { services, loading, error } = useServices();
+  const { data: services = [], isLoading: loading, error } = useServices();
+
+  console.log("serv", services);
 
   // Use custom hook to scroll to header on page navigation
   useScrollToHeader();
@@ -63,7 +65,9 @@ const Services = () => {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <p className="mb-4 text-red-600">Error loading services: {error}</p>
+          <p className="mb-4 text-red-600">
+            Error loading services: {error?.message || "Unknown error"}
+          </p>
           <button
             onClick={() => window.location.reload()}
             className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-white hover:bg-[var(--color-primary-dark)]"
@@ -106,13 +110,13 @@ const Services = () => {
             {/* Services Grid */}
             <div className="flex flex-col">
               {currentServices.length > 0 ? (
-                currentServices.map(service => (
+                currentServices?.map((service) => (
                   <ServiceCard
                     key={service.id}
-                    title={service.title}
+                    title={service?.title}
                     onReadMore={() => {
                       // Handle service details navigation
-                      console.log(`Navigate to ${service.title} details`);
+                      console.log(`Navigate to ${service?.title} details`);
                       // You can navigate to service detail page using service.slug
                       // router.push(`/services/${service.slug}`);
                     }}
