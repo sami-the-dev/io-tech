@@ -102,9 +102,10 @@ const Hero = ({ backgroundImage = "/hero.png" }: HeroProps) => {
                   <Image
                     width={300}
                     height={300}
-                    src={currentLawyer?.image}
-                    alt={currentLawyer?.name}
+                    src={currentLawyer?.image || avatar}
+                    alt={currentLawyer?.name || "Team member profile"}
                     className="h-full w-full object-cover"
+                    priority
                   />
                 </div>
               </div>
